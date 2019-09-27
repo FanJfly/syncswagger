@@ -1,0 +1,7 @@
+node_modules
+.history
+.DS_Store
+yarn.lock
+# mock
+/mock
+/mock/mock.js
