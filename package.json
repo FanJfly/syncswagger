@@ -1,6 +1,6 @@
 {
   "name": "syncswagger",
-  "version": "0.0.1",
+  "version": "0.0.7",
   "description": "sync swagger-api to mock server",
   "main": "index.js",
   "bin": {

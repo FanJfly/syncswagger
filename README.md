@@ -1,12 +1,15 @@
 #### 同步swagger api
 
-#### 使用方法
+#### 本地启动mock服务
 
 ```
 
 // 本地启动生成mock数据服务，默认mock地址为localhost:10013
 node bin/syncSwagger.js 
+
 ```
+
+
 
 > 说明
 
