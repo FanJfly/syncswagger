@@ -3,7 +3,7 @@ const fs = require('fs');
 const mkdirp = require('mkdirp')
 
 const synchronizeSwagger = {
-  async init({ url, blacklist, outputPath, dataLength, fileName, whitelist, prefix="/" }) {
+  async init({ url, blacklist, outputPath, dataLength, fileName, whitelist, prefix="/", independentServer }) {
     this.url = url;
     this.blacklist = blacklist;
     this.whitelist = whitelist;
@@ -11,10 +11,11 @@ const synchronizeSwagger = {
     this.dataLength = dataLength;
     this.fileName = fileName;
     this.content = '';
-    this.prefix = prefix
+    this.prefix = prefix;
+    this.independentServer = independentServer;
     await this.parse()
     if (this.content) {
-      await writeToMockFile(this.outputPath, this.fileName, this.content)
+      await writeToMockFile(this.outputPath, this.fileName, this.content, this.independentServer)
       return ({ state: 'success', content:this.content })
     } else {
       return ({ state: 'failed' })
@@ -78,12 +79,21 @@ const synchronizeSwagger = {
   generateTemplate({ summary, example, method, path }) {
     // api path中的{petId}形式改为:petId
     const data = formatResToMock(path, example, this.dataLength);
-    return `
-    // ${summary}
-    '${method.toUpperCase()} ${this.prefix}${path.replace(/\{([^}]*)\}/g, ':$1')}': (req, res) => {
-      res.send(Mock.mock(${data.replace(/null/g, '') || `true`}));
-    },
-    `;
+    let temp = !this.independentServer ? 
+      `
+      // ${summary}
+      '${method.toUpperCase()} ${this.prefix}${path.replace(/\{([^}]*)\}/g, ':$1')}': (req, res) => {
+        res.send(Mock.mock(${data.replace(/null/g, '') || `true`}));
+      },
+      `
+    :
+      `/**
+        ${summary}
+        **/
+        app.${method}('${this.prefix}/api${path.replace(/\{([^}]*)\}/g, ":$1")}', (req, res) => {
+          res.send(Mock.mock(${data.replace(/null/g, '') || `true`}));
+        });`;
+    return temp;
   },
 };
 
@@ -123,14 +133,21 @@ function formatResToMock(path, res, dataLength) {
 }
 
 // 将mock数据写入js文件
-function writeToMockFile(outputPath, fileName, content) {
+function writeToMockFile(outputPath, fileName, content, independentServer) {
   // 写入文件
-  let temp = `var Mock = require('mockjs')
+  let template = !independentServer ? 
+  `var Mock = require('mockjs')
   export default {
     ${content}
   }
     `
-  fs.writeFile(`${outputPath}/${fileName}`, temp, err => throwErr)
+    :
+    `const Mock = require('mockjs')
+    module.exports = function(app) {
+      ${content}
+    }
+  `;
+  fs.writeFile(`${outputPath}/${fileName}`, template, err => throwErr)
 }
 
 // 初始模版

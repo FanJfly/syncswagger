@@ -4,8 +4,71 @@
 
 ```
 
-// 本地启动生成mock数据服务，默认mock地址为localhost:10013
-node bin/syncSwagger.js 
+// 本地启动生成mock数据服务，需要自己写一个服务，如果是使用express代码如下：
+
+var express = require('express')
+var app = express()
+var join = require('path').join
+var fs = require('fs')
+var bodyParser = require("body-parser");
+var { synchronizeSwagger } = require('./synchronizeSwagger')
+
+// post解析body,默认是application/x-www-form-urlencoded需要解析成json
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+
+app.all('*', function (req, res, next) {
+  //设置允许跨域访问该服务.
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "*");
+  res.header("Access-Control-Allow-Methods", "*");
+  res.header("X-Powered-By", ' 3.2.1')
+  // post请求需要加入Content-Type
+  res.header("Content-Type", "application/json;charset=utf-8");
+  next();
+});
+
+function scan(path, app) {
+  const files = fs.readdirSync(path);
+
+  for (let i = 0; i < files.length; i++) {
+    const fpath = join(path, files[i]);
+    const stats = fs.statSync(fpath);
+    if (stats.isDirectory()) {
+      scan(fpath, app);
+    }
+    if (stats.isFile() && stats.size > 0) {
+      require(fpath)(app);
+    }
+  }
+}
+
+app.post('/swagger', function (req, res) {
+  if (req.body) {
+    synchronizeSwagger.init(req.body).then(item => {
+      if (item.state === 'success') {
+        console.log('success',item)
+      }
+    }).catch(err => {
+      console.log(err)
+    })
+  }
+  res.send(req.body)
+})
+app.get('/test', function (req, res) {
+  res.json({ message: 'success' })
+})
+
+
+
+app.listen(10013, function () {
+  console.log('');
+  scan(join(__dirname, './mock'), app);
+});
+
+
+
 
 ```
 
