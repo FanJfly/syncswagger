@@ -2,6 +2,7 @@ node_modules
 .history
 .DS_Store
 yarn.lock
+package-lock.json
 # mock
 /mock
 /mock/mock.js

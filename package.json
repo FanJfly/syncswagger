@@ -1,6 +1,6 @@
 {
   "name": "syncswagger",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "sync swagger-api to mock server",
   "main": "index.js",
   "bin": {
@@ -12,6 +12,19 @@
   "author": "jiangf",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.19.0"
+    "axios": "^0.19.0",
+    "chalk": "^4.0.0",
+    "commander": "^5.0.0",
+    "fs": "^0.0.1-security",
+    "mkdirp": "^0.5.1",
+    "swagger-parser-mock": "^1.1.2"
+  },
+  "devDependencies": {
+    "cz-conventional-changelog": "^3.1.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
   }
 }
